@@ -54,6 +54,9 @@ grep -q 'About' index.html
 grep -q '2026-01' pt/index.html
 grep -q 'Minha Jornada Self-Hosted (Até Agora): Ou Como Aprendi a Parar de Me Preocupar e Amar Meu Raspberry Pi' pt/index.html
 grep -q 'discussões estratégicas com a esposa sobre como esconder os fios' pt/2026/01/25/minha-jornada-self-hosted-ate-agora-ou-como-aprendi-a-parar-de-me-preocupar-e-amar-meu-raspberry-pi/index.html
+grep -q 'Bem-vindo ao Meu Jardim Digital' pt/about/index.html
+grep -q 'O Rosto Por Trás da Tela' pt/about/index.html
+grep -q 'A Parte Técnica' pt/about/index.html
 if grep -q 'My Self-Hosted Journey So Far' pt/index.html; then
   exit 1
 fi
