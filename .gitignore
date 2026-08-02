@@ -1,0 +1,38 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Hugo build output
+public/
+.hugo_build.lock
+
+# IDE/Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Virtual environment
+.venv/
+
+# Node.js
+node_modules/
+
+# Docker
+.docker/
+
+# Superplan/Planning files
+docs/superpowers/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

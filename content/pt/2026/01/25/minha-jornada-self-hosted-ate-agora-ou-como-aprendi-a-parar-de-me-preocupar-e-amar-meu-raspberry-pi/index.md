@@ -1,0 +1,21 @@
+---
+title: "Minha Jornada Self-Hosted: Ou Como Aprendi a Parar de Me Preocupar e Amar Meu Raspberry Pi"
+date: 2026-01-25
+draft: false
+type: posts
+---
+
+Continuando a saga de self-hosted, acredito que agora encontrei os serviços mínimos que preciso para o presente. Depois de muita conversa com AI, leitura de tópicos no StackOverflow (sim, sou velho), discussões no Reddit e posts no Medium, consegui desenvolver boas habilidades em vários campos. Ah, também não posso deixar de comentar que esse hobby é caro, exige paciência e discussões estratégicas com a esposa sobre como esconder os fios que agora ocupam o rack da sala.
+Minha principal preocupação sempre foi manter as coisas que eu preciso de forma segura, e foi aqui onde gastei a maior parte do meu tempo em estudo, tentativa e erro (muito erro). O meu YingYang interno era se mantinha serviços expostos na internet ou apenas em minha rede local. A segunda opção significava montar uma VPN para conseguir acessar tudo o que precisava, o que incluía mais uma camada de complicação que eu não tinha certeza se queria encarar.
+Desde o primeiro post sobre selfhosted, fiz alguns investimentos em hardware. Comprei um switch semi gerenciável para separar algumas redes locais, para separar toda a parafernália que tenho entre IoT, “dispositivos smart” , computadores, servidores, e etc. O segundo item que comprei foi um desktop small form factor da HP (HP EliteDesk G4 SFF) para ser minha nuvem (NAS), hospedando serviços como NextCloud, Immich, Jellyfin e operando com TrueNas. Para a minha raspberry mantive esse website, meu serviço de filtragem de rede, uma VPN, uma instância do Grafana para meus sideprojects, um buscado (por que não?), um broker MQTT e meu servidor HTTPs para acessar tudo isso, tudo em container Docker para evitar poluir o Sistema Operacional da Raspberry. 
+## Mano, e a segurança?
+Tentei primeiro deixar algumas coisas expostas, mas era muito difícil dormir tranquilo. Sempre pensando que algum chapéu colorido iria testar as minhas configurações (que, convenhamos, não foram feitas por um profissional). Ainda quando mantive as aplicações expostas, aprendi um pouco mais sobre a Cloudflare, configurar filtros de acesso por países (que não faz sentido porque qualquer um com VPN quebraria esse filtro), usar Zero-Trust e 2FA da Cloudflare e mais meia dúzia de configurações.
+No começo parecia seguro. Configurei envio de email SMTP com uma conta que tenho no MailGun para 2FA, configurei Zero-Trust e alguns filtros, mas ainda assim para tudo isso funcionar, eu precisava bypassar meu firewall para acessar as aplicações. Isso parecia um ponto de falha esperando para acontecer. Depois de muita pesquisa, decidi manter a maioria das minhas aplicações locais com acesso via VPN, e apenas uma que eu compartilho com a minha família, exposta na internet mas com diversos filtros e configurações de segurança. Até porque preciso de um tempo para explicar a eles como funciona uma VPN sem que eles me olhem com cara de paisagem.
+Tendo isso dito, vamos ver o que criei.
+## Investimentos em Hardware
+Desde o primeiro post sobre self-hosted, fiz alguns investimentos em hardware. Comprei um switch semi gerenciável para separar algumas redes locais, organizando toda a parafernália que tenho entre IoT, "dispositivos smart", computadores, servidores, e etc. O segundo item que comprei foi um desktop small form factor da HP (HP EliteDesk G4 SFF) para ser minha nuvem (NAS), hospedando serviços como NextCloud, Immich, Jellyfin e operando com TrueNAS.
+Para a minha raspberry mantive esse website, meu serviço de filtragem de rede, uma VPN, uma instância do Grafana para meus side projects, um buscador (por que não?), um broker MQTT e meu servidor HTTPS para acessar tudo isso. Tudo em container Docker para evitar poluir o Sistema Operacional da raspberry.
+## O Stack da Raspberry Pi
+### Ghost
+Já fiz post sobre ele, dá uma lida aqui: [Building a Self-Hosted Blog: A Journey of Patience, Docker, and Coffee](__GHOST_URL__/building-a-self-hosted-blog/)
+### 

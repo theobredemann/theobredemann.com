@@ -1,0 +1,50 @@
+{{ define "main" }}
+
+{{ $posts := where .Site.RegularPages "Type" "posts" }}
+{{ if ne .Site.Language.Lang "en" }}
+  {{ $posts = where $posts "Lang" .Site.Language.Lang }}
+{{ end }}
+{{ $posts = $posts.ByDate.Reverse }}
+
+<div class="hx:mx-auto hx:flex hextra-max-page-width">
+  <article class="hx:w-full hx:break-words hx:flex hx:min-h-[calc(100vh-var(--hextra-navbar-height))] hx:min-w-0 hx:justify-center hx:pb-8 hx:pr-[calc(env(safe-area-inset-right)-1.5rem)]">
+    <main id="content" class="hx:w-full hx:min-w-0 hx:max-w-3xl hx:px-6 hx:pt-10 hx:md:px-12">
+      {{ partial "custom/page-begin.html" . }}
+      {{ partial "breadcrumb.html" (dict "page" . "enable" false) }}
+      <div class="content">
+        {{ if .Title }}<h1>{{ .Title }}</h1>{{ end }}
+        {{ partial "custom/content-begin.html" . }}
+
+        <div class="home-archive">
+          {{ $currentMonth := "" }}
+          {{ range $posts }}
+            {{ if and (eq $.Site.Language.Lang "en") (strings.HasPrefix .RelPermalink "/pt/") }}{{ continue }}{{ end }}
+            {{ $month := .Date.Format "2006-01" }}
+            {{ if ne $month $currentMonth }}
+              {{ if $currentMonth }}</section>{{ end }}
+              <section class="home-archive-month" id="{{ $month }}">
+                <h2>{{ $month }}</h2>
+              {{ $currentMonth = $month }}
+            {{ end }}
+            <article class="home-archive-post">
+              <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+              <div>
+                <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+                {{ with .Summary }}<p>{{ . | plainify }}</p>{{ end }}
+              </div>
+            </article>
+          {{ end }}
+          {{ if $currentMonth }}</section>{{ end }}
+        </div>
+        
+        {{ partial "custom/content-end.html" . }}
+      </div>
+      <div class="hx:mt-16"></div>
+      {{ partial "components/last-updated.html" . }}
+      {{ partial "components/comments.html" . }}
+      {{ partial "custom/page-end.html" . }}
+    </main>
+  </article>
+</div>
+
+{{ end }}
