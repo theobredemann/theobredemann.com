@@ -1,246 +1,119 @@
 ---
-title: "My Self-Hosted Journey So Far"
-date: 2026-01-25T00:00:00+00:00
-draft: false
+title: "My Self-Hosted Journey (So Far): Or How I Learned to Stop Worrying and Love the Raspberry Pi"
+date: 2026-01-25T12:30:14Z
 type: posts
-tags: ["Self-Hosted", "Homelab", "Raspberry Pi", "NAS", "Docker"]
+tags:
+  - "en"
+  - "self-hosting"
+featured_image: "__GHOST_URL__/content/images/2026/01/selfhosted-art.webp"
 ---
 
-# My Self-Hosted Journey So Far
+Continuing the self-hosted saga, I think I've finally landed on the minimum set of services I need for now. After countless conversations with AI, diving deep into StackOverflow threads (yes, I'm old school), Reddit debates, and Medium posts, I've developed some solid skills across various domains. Oh, and I can't forget to mention that this hobby is expensive, demands patience, and involves strategic discussions with my wife about hiding the cables that now occupy our living room.
 
-Continuing the self-hosted saga, I believe I have now found the minimum services I need for the present. After many conversations with AI, reading StackOverflow topics (yes, I'm old), discussions on Reddit, and posts on Medium, I've managed to develop good skills in various fields. Oh, and I can't forget to mention that this hobby is expensive, requires patience, and involves strategic discussions with my wife about how to hide the cables that now occupy the rack in our living room.
+My main concern has always been keeping the things I need secure, and this is where I've spent most of my time studying, experimenting, and failing spectacularly. My internal Yin-Yang debate was whether to keep services exposed to the internet or locked down to my local network. The second option meant setting up a VPN to access everything I needed, which added another layer of complexity I wasn't sure I wanted to deal with.
 
-## The Security Dilemma
+## The Security Rabbit Hole
 
-My main concern has always been keeping the things I need secure, and this is where I've spent most of my time studying, trying, and making mistakes (lots of mistakes). My internal yin-yang was whether to keep services exposed to the internet or only on my local network. The second option meant setting up a VPN to access everything I needed, which added another layer of complexity that I wasn't sure I wanted to deal with.
+I initially tried exposing some services, but sleeping peacefully became impossible. I kept imagining some colorful-hat hacker testing my configurations (which, let's be honest, weren't exactly crafted by a professional). Even while keeping applications exposed, I learned quite a bit about Cloudflare, configuring access filters by country (which doesn't really make sense since anyone with a VPN could bypass it), using Cloudflare's Zero-Trust and 2FA, and half a dozen other configurations.
+
+At first, it seemed secure enough. I configured SMTP email sending with my MailGun account for 2FA, set up Zero-Trust and some filters, but for all of this to work, I still needed to bypass my firewall to access the applications. That felt like a potential point of failure. After extensive research, I decided to keep most of my applications local with VPN access, and only one that I share with my family exposed to the internet but with various security filters and configurations. Mainly because I need time to explain to them how a VPN works without their eyes glazing over.
+
+Having said that, let's see what I've built.
 
 ## Hardware Investments
 
-Since my first post about self-hosting, I've made some hardware investments. I bought a semi-managed switch to separate some local networks, to separate all the paraphernalia I have between IoT, "smart devices", computers, servers, etc.
+Since my first post about self-hosting, I've made some hardware investments. I bought a semi-manageable switch to separate some local networks, organizing all the paraphernalia I have between IoT devices, "smart" gadgets, computers, servers, and so on. The second item was an HP EliteDesk G4 SFF desktop to serve as my cloud (NAS), hosting services like NextCloud, Immich, Jellyfin and running TrueNAS.
 
-The second item I bought was a small form factor HP desktop (HP EliteDesk G4 SFF) to be my cloud (NAS), hosting services like NextCloud, Immich, Jellyfin, and running TrueNas. For my Raspberry Pi, I kept this website, my network filtering service, a VPN, a Grafana instance for my side projects, a search engine (why not?), an MQTT broker, and my HTTPS server to access all of this, all in Docker containers to avoid polluting the Raspberry Pi's operating system.
+For my Raspberry Pi, I maintained this website, my network filtering service, a VPN, a Grafana instance for my side projects, a search engine (why not?), an MQTT broker, and my HTTPS server to access all of this. Everything runs in Docker containers to avoid polluting the Raspberry Pi's operating system.
 
-## Security: To Expose or Not to Expose?
+Currently, the setup looks like this:
 
-I first tried keeping some things exposed, but it was very difficult to sleep peacefully. Always thinking that some colored hat would test my configurations (which, let's admit, weren't made by a professional). Even when I kept the applications exposed, I learned a bit more about security.
+## The Raspberry Pi Stack
 
-### The VPN Solution
+### Ghost
 
-I decided that the VPN approach was the way to go. This way, I can access all my services securely without exposing them directly to the internet. I set up WireGuard, which is fast, modern, and relatively easy to configure.
+I've already posted about it, check it out here: [Building a Self-Hosted Blog: A Journey of Patience, Docker, and Coffee](__GHOST_URL__/building-a-self-hosted-blog/)
 
-Benefits of this approach:
-- No services directly exposed to the internet
-- All traffic encrypted
-- Access from anywhere with internet
-- Better sleep at night
+### PiHole + Unbound: Taking Back My DNS
 
-Drawbacks:
-- Need to connect to VPN to access services
-- Slightly more complex setup
-- Potential performance overhead
+The main headache was setting up network filtering and a recursive DNS resolver. I wanted to implement this to prevent my network queries from going to my internet provider and other companies like Google, who monetize this data. It might seem crazy, but if someone's making money from what I generate, I want to be compensated too. Otherwise, I'll do it myself because today it's actually possible.
 
-### VPN Configuration
+I chose [Unbound](https://github.com/NLnetLabs/unbound) as my resolver. The idea is that all requests go through it, return the IP, and keep everything private, including DNS-Over-HTTPS (DoH). Configuring this in Docker on a Raspberry Pi was hell. I had to learn to mess with Linux network configurations like `/etc/hosts` and `/etc/resolv.conf`, traffic forwarding through the router, port opening, and a dozen other details because everything was running in Docker.
 
-Setting up WireGuard was relatively straightforward:
+With Unbound configured, I set up [PiHole](https://github.com/pi-hole/pi-hole), which is my network filter. It's an incredible program where I can add various blocklists and remove, at the network level, all ads, trackers, malicious sites, and a bunch of other garbage. Additionally, I use it as my DHCP server to have more control over each device on my network, assigning fixed IPs and not relying solely on the internet company's router. Through it, I also configure my local addresses to access everything.
 
-1. Install WireGuard on your server
-2. Generate keys for server and clients
-3. Configure the server with allowed IPs
-4. Create client configurations
-5. Set up firewall rules
+![](__GHOST_URL__/content/images/2026/01/817-378.png)
 
-The result is a secure connection that lets me access all my self-hosted services as if I were on my local network.
+### VPN: The Gateway Home
 
-## Service Breakdown
+One of my questions was how I could maintain access to things on my local network even when away from home. The solution was a VPN, but this VPN had to have applications for iOS, Android, macOS, and Windows so everyone in my family could access it, including me.
 
-Here's what I'm currently running and why:
+I chose to configure [Wireguard](https://www.wireguard.com) because it's open source and the foundation for several other VPNs, plus it has applications for almost all platforms. One of the things I liked most, even though the app is quite simple, is the On-Demand activation feature, which automatically activates when I leave my local network and deactivates when I get home. It was pretty straightforward to configure and use.
 
-### On the HP EliteDesk (NAS)
+But because I wanted to complicate my life, I tried using [NetBird](https://github.com/netbirdio/netbird) as a VPN, which allowed me much greater control over access to my resources, with various configurations and tricks. I kept it running for a month in place of Wireguard, but found it too much work to maintain and configure, so I deactivated it for being overkill for what I needed. One of the main negatives was the iOS app constantly disconnecting and being very buggy. I never knew if I was connected or not, and it didn't have the on-demand connection option (which I think is basic). I think when I scale up my home setup more, I'll need to revisit this point, but for now, I've left it inactive.
 
-- **TrueNas** - Operating system with built-in NAS features
-- **NextCloud** - File storage, synchronization, and sharing
-- **Immich** - Photo backup and management (Google Photos alternative)
-- **Jellyfin** - Media streaming (Plex/Emby alternative)
-- **Transmission** - Torrent client
-- **Sonarr/Radarr** - Media management
+### HTTPS Server: From NPM to Caddy
 
-### On the Raspberry Pi
+Finishing this tedious networking part, to provide access to services, I started with [NGINX Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager). It's an excellent service, good UI, very simple to configure, and I used it for several good months. When I tried using NetBird, I ran into some difficulties with NPM in redirecting services in gRPC and other newer protocols. I believe the difficulty was due to limited knowledge, but even with AI I couldn't solve it.
 
-- **This website** - Ghost blogging platform
-- **Pi-hole** - Network-wide ad blocking and DNS filtering
-- **WireGuard** - VPN server
-- **Grafana** - Monitoring and visualization for my side projects
-- **Meilisearch** - Search engine for my personal data
-- **Mosquitto** - MQTT broker for IoT
-- **Nginx** - Reverse proxy and HTTPS server
+The solution was to move to another newer service, equally robust and open source: [Caddy](https://github.com/caddyserver/caddy). Unlike NPM, it doesn't have a UI, and all configuration is done in a file called Caddyfile. Obviously, I had a learning curve, but it's a very friendly and easy-to-configure file. Plus, it's written in Go and is basically forgettable because it's so stable. With it, I managed to configure everything I needed and even version each change I made in GitHub. It's thanks to Caddy that you can read this text right now.
 
-## Network Setup
+### Private Search Engine: SearXNG
 
-### Physical Network
+If I was already digging deep into privacy, I think what generates the most data is what we search for on Google. With each search we do, we feed their model of our interests, and this turns into ads, commerce, and so on. For a while, I used some other private search engines like Brave Search and DuckDuckGo, but reading some blogs I discovered [SearXNG](https://github.com/searxng/searxng), which I could also self-host. I found it incredible and decided to test it.
 
-- **Main router** - Handles internet connection and basic routing
-- **Semi-managed switch** - Separates different types of traffic
-- **VLANs** - Different networks for IoT, servers, computers, etc.
+It has tons of settings related to content search, cookie configurations, and things I don't even know how to use yet. It works perfectly well, but there's an important point: I don't want to leave this public for anyone to use my search engine, with the danger of bringing down everything I have due to high demand. Oh, there's another important point: Safari doesn't let you use custom search engines, only if you use it in the new window configuration, which partially solves it. So I only use it locally and in Firefox.
 
-### Logical Network
+I confess that it's often underutilized, but it's cool to have.
 
-- **Main network** - For regular devices (computers, phones, etc.)
-- **Server network** - For my self-hosted services
-- **IoT network** - For smart devices and IoT gadgets
-- **Guest network** - For visitors
+![](__GHOST_URL__/content/images/2026/01/Preferences.png)
 
-This separation helps with security and performance. IoT devices can't access my servers, and servers aren't exposed to the main network.
+### Grafana & MQTT Broker: Observability for Nerds
 
-## Challenges Faced
+Since I wanted to venture into observability and also have a data visualization tool, I deployed [Grafana](https://github.com/grafana/grafana) with Prometheus to test my IoT projects and have more visualization of my Raspberry Pi's state, like CPU usage, memory, disk, generate alerts, and free my mind from small worries. I had used Grafana before, but hadn't gone so deep into configurations, alert rules, integrations, and other facilities the tool offers.
 
-### 1. Power Consumption
+One of the things I'm analyzing now is the temperature and humidity of my apartment, correlating the effort my gas heater has to make to reach a comfortable temperature. These wall-mounted grid heaters are horrible, they use a lot of gas and take over 6 hours to heat the apartment by 2 degrees. So my next dream is to have a split AC in the apartment.
 
-Running multiple servers 24/7 consumes electricity. I've tried to optimize:
-- Using energy-efficient hardware
-- Implementing sleep modes where possible
-- Monitoring power usage
+This project is an ESP32, connected to my self-hosted [Mosquitto](https://github.com/eclipse-mosquitto/mosquitto) broker, sending data from a DHT22. The project is in MicroPython to test how far I can create something with one of the least performant languages on limited hardware.
 
-### 2. Noise
+![](__GHOST_URL__/content/images/2026/01/Pasted-Graphic-2.png)
 
-The HP EliteDesk is relatively quiet, but it's still noticeable. I've placed it in a location where the noise isn't too bothersome.
+## The NAS: Where the Magic Happens
 
-### 3. Heat
+### NextCloud: My Personal Cloud Empire
 
-Both the Raspberry Pi and the HP EliteDesk generate heat. Proper ventilation is essential, especially in the summer.
+I've always been a jumper between iOS and Android, and the most complicated thing was managing data between them. Beyond that, I had all my discomfort with my files on Google Drive, the terrible file management that iCloud has, and even the bugs in Proton Drive. After a few months in self-hosted forums, I read about [NextCloud](https://nextcloud.com/home-users/). It's a perfect cloud, with everything Google Drive offers, free, open source, and that I could include in my universe of applications.
 
-### 4. Backups
+I can't say how amazed I was with this and it was the first application I wanted to put on my NAS. It has Office, online and collaborative document editing, calendar, contacts, notes, all private, in one place. Do you realize how valuable this is? It also has applications for all platforms to do automatic backup and it's the application I share with my family.
 
-With so much important data self-hosted, backups are crucial. My current setup:
-- Regular backups to external drives
-- Offsite backups to a friend's house
-- Cloud backups for critical data
+Although it's already configured, with some test files I uploaded, I'm not using it 100% because the disk on my NAS is an old notebook disk I had. I want to set up a RAID-1 initially, and I want to start with 8TB disks. The problem is that AI is eating up all the hardware in the world and a disk like that is almost €300, and I'm postponing the purchase.
 
-### 5. Maintenance
+Well, even without the ideal disk, it's stable, with fast access and without corrupting any files. Obviously, I have backups of the data that's here.
 
-Self-hosting requires regular maintenance:
-- Software updates
-- Security patches
-- Monitoring
-- Troubleshooting
+![](__GHOST_URL__/content/images/2026/01/-e.png)
 
-## Lessons Learned
+### Immich: Reclaiming My Photos
 
-### 1. Start Small
+Well, what else besides files do we give as free information to train Big Tech AI? Our photos, obviously. And then I thought: well, NextCloud already has a photos section and I can use it. I tested it for a while and didn't like it. I wanted something that had a bit more intelligence and that I could manage my photos with more freedom.
 
-Don't try to self-host everything at once. Start with one or two services and expand as you gain confidence and experience.
+So I researched and discovered [Immich](https://github.com/immich-app/immich), another magical and absurdly incredible application that's identical to Google Photos, private, and still has offline machine learning to identify people and organize photos. Everything Google Photos has, Immich has, being free. It has a map that organizes photos from each location by geolocation, duplicate removal, large file reviewer, album sharing, applications for all platforms. It's incredible and I can finally have my private, cross-platform place for my photos.
 
-### 2. Documentation is Key
+Obviously, just like NextCloud, I'm without my disk and still maintain photos on iCloud and Immich.
 
-Document everything:
-- Configuration details
-- Setup instructions
-- Troubleshooting steps
-- Recovery procedures
+![](__GHOST_URL__/content/images/2026/01/E-ERE-EEEEELE.png)
 
-You will forget how you set things up. Trust me.
+### Jellyfin: The Netflix Replacement (Work in Progress)
 
-### 3. Backups are Non-Negotiable
+The last application I installed and am still learning to use is [Jellyfin](https://github.com/jellyfin/jellyfin). The idea is to replace Netflix with it, especially because €23 per month is very overkill for what my wife and I consume on Netflix.
 
-If your data isn't backed up, it doesn't exist. Test your backups regularly.
+It's empty for now. I'm still reading the documentation to learn how to configure and use it, and it's also hanging on that single disk in the NAS that I don't want to stress anymore.
 
-### 4. Security First
+![](__GHOST_URL__/content/images/2026/01/Pasted-Graphic-5.png)
 
-Always prioritize security:
-- Keep software updated
-- Use strong passwords
-- Implement proper network segmentation
-- Monitor for suspicious activity
+## Final Thoughts
 
-### 5. Expect Problems
+The self-hosted world has opened my eyes to how much we don't know about the internet and how many incredible things are available for free, being maintained by people who use their time to contribute so these projects happen. The open-source community is incredible and whenever possible I contribute to projects as a way to encourage them and ensure this continues for a long time.
 
-Things will break. Services will stop working. You will lose data. Expect it and be prepared.
+It wasn't easy to get to this level. I had to read a lot, learned a lot, and each day I sink deeper into my homelab and what else I can have without depending on Big Tech, relying only on my knowledge, curiosity, and community. Obviously, having this at home greatly reduces the convenience of having Google's infrastructure, or the worry that your data might disappear if you mess something up, but that's what drives me.
 
-### 6. The Wife Factor
-
-If you're married or in a serious relationship, involve your partner in the process. Explain what you're doing, why it's important, and how it affects them. Strategic discussions about cable management and noise levels are essential.
-
-## Cost Analysis
-
-Self-hosting isn't free. Here's a breakdown of my costs:
-
-### Initial Investment
-
-- Raspberry Pi 5 (8GB): ~$80
-- HP EliteDesk G4 SFF: ~$200 (used)
-- Semi-managed switch: ~$100
-- External hard drives: ~$300
-- UPS (Uninterruptible Power Supply): ~$150
-
-Total: ~$830
-
-### Ongoing Costs
-
-- Electricity: ~$20/month
-- Domain name: ~$10/year
-- Occasional hardware replacements: ~$100/year
-
-Total: ~$350/year
-
-### Savings
-
-By self-hosting, I've avoided:
-- Cloud storage subscriptions: ~$100/year
-- Media streaming services: ~$200/year
-- Various SaaS subscriptions: ~$300/year
-
-Total savings: ~$600/year
-
-So while there are upfront costs, the long-term savings can be significant.
-
-## The Future
-
-My self-hosted journey is far from over. Some things I'm planning for the future:
-
-### 1. Expand Storage
-
-I'm running out of storage space. I'm considering:
-- Adding more hard drives
-- Implementing a proper RAID setup
-- Exploring object storage options
-
-### 2. Improve Redundancy
-
-Currently, my redundancy is limited. I want to:
-- Set up proper RAID for critical data
-- Implement automated backups
-- Add more offsite backup locations
-
-### 3. Add More Services
-
-Some services I'm considering adding:
-- **Vaultwarden** - Self-hosted password manager
-- **Bookstack** - Wiki and documentation
-- **Calibre** - E-book management
-- **Home Assistant** - Home automation
-
-### 4. Improve Monitoring
-
-Better monitoring of:
-- Service health
-- Performance metrics
-- Security events
-- Resource usage
-
-### 5. Upgrade Hardware
-
-As my needs grow, I may need to:
-- Upgrade the HP EliteDesk
-- Add more Raspberry Pis
-- Invest in better networking equipment
-
-## Conclusion
-
-My self-hosted journey has been challenging, educational, and rewarding. I've learned a tremendous amount about technology, networking, security, and even patience. I've gained complete control over my digital life and the data that's important to me.
-
-But it's not all sunshine and rainbows. Self-hosting requires time, money, and effort. It's not for everyone. But for those willing to put in the work, the rewards can be substantial.
-
-If you're thinking about starting your own self-hosted journey, my advice is: start small, learn as you go, and don't be afraid to ask for help. The self-hosting community is incredibly supportive and knowledgeable.
-
-And remember: the goal isn't to self-host everything. The goal is to self-host the things that are important to you, in a way that works for your situation and lifestyle.
-
-Happy self-hosting!
+More updates coming soon.
