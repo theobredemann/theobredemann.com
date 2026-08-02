@@ -1,0 +1,31 @@
+# Git
+.git
+.gitmodules
+
+# Hugo build output
+public/
+.hugo_build.lock
+
+# Node.js
+node_modules/
+
+# Virtual environment
+.venv/
+
+# IDE/Editor files
+.idea/
+.vscode/
+
+# Docker
+.docker/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

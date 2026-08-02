@@ -1,0 +1,72 @@
+baseURL: "https://theobredemann.com/"
+locale: "en-US"
+title: "Bited Life"
+theme: "hextra"
+
+# Content configuration
+paginate: 10
+
+# Taxonomies
+taxonomies:
+  category: "categories"
+  tag: "tags"
+
+# Output formats
+outputs:
+  home:
+    - HTML
+    - RSS
+  page:
+    - HTML
+
+# Markdown configuration
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+  highlight:
+    noClasses: false
+
+# Multilingual configuration
+languages:
+  en:
+    label: "English"
+    weight: 1
+    contentDir: "content"
+    title: "Bited Life"
+    description: "Theo Bredemann's personal blog about technology, privacy, and self-hosting"
+    locale: "en-US"
+  pt:
+    label: "Português"
+    weight: 2
+    contentDir: "content/pt"
+    title: "Bited Life"
+    description: "Blog pessoal do Theo Bredemann sobre tecnologia, privacidade e self-hosting"
+    locale: "pt-BR"
+
+# Menu configuration
+menus:
+  main:
+    - identifier: home
+      name: Home
+      url: /
+      weight: 1
+    - identifier: about
+      name: About
+      url: /about/
+      weight: 2
+
+# Parameters
+params:
+  mainSections:
+    - posts
+  featuredPostCount: 3
+  sidebar:
+    enable: true
+    dateNavigator: true
+  social:
+    github: "https://github.com/theobredemann"
+    linkedin: "https://linkedin.com/in/theobredemann"
+  footer:
+    since: 2025
+    customText: "Powered by Hugo & Hextra"

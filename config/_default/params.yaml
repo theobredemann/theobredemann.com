@@ -1,0 +1,18 @@
+mainSections:
+  - posts
+
+featuredPostCount: 3
+
+sidebar:
+  enable: true
+  dateNavigator: true
+
+# Social links
+social:
+  github: "https://github.com/theobredemann"
+  linkedin: "https://linkedin.com/in/theobredemann"
+
+# Footer
+footer:
+  since: 2025
+  customText: "Powered by Hugo & Hextra"
