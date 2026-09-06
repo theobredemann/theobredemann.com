@@ -43,7 +43,15 @@ An LSTM is a neural network that reads a sequence instead of a single row. Here 
 
 For individual inverters, the LSTM reached WAPE **0.225**, better than the naive baseline at **0.312**. That is useful, especially because the notebook can show which inverters and which times of day produce the largest errors.
 
+![Actual generation and LSTM forecast for one inverter over several days](/images/posts/solar-plant-problem-detection/inverter-lstm-actual-vs-forecast.png)
+
+*At inverter level, the forecast follows the daily shape, while the gaps make local behaviour worth investigating.*
+
 At plant level, the LSTM also improved on the baseline: **0.274** versus **0.303**. So temporal memory clearly helps. But it is heavier to train, needs carefully continuous windows and scaling, and loses to models that can see the current weather directly.
+
+![Actual plant generation and LSTM forecast over a future test period](/images/posts/solar-plant-problem-detection/plant-lstm-actual-vs-forecast.png)
+
+*At plant level, the same comparison makes the operational limitation visible: the LSTM understands the broad rhythm, but does not always follow short, sharp changes in generation.*
 
 That is not a defeat for the LSTM. It tells us where it belongs: a sequence benchmark and a diagnostic tool, rather than the default real-time estimator.
 

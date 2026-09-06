@@ -43,7 +43,15 @@ Uma LSTM é uma rede neural que lê uma sequência, não uma linha isolada. Aqui
 
 Para os inversores, a LSTM chegou a WAPE **0.225**, melhor que a baseline em **0.312**. É um ganho útil, especialmente porque o notebook mostra quais inversores e quais horas do dia concentram os maiores erros.
 
+![Geração real e previsão da LSTM para um inversor ao longo de vários dias](/images/posts/solar-plant-problem-detection/inverter-lstm-actual-vs-forecast.png)
+
+*No nível do inversor, a previsão acompanha o formato diário, enquanto as diferenças mostram comportamentos locais que valem ser investigados.*
+
 No nível da planta, a LSTM também superou a baseline: **0.274** contra **0.303**. Portanto, memória temporal ajuda. Mas ela é mais pesada para treinar, exige janelas contínuas e escalonamento cuidadoso, e perde para modelos que conseguem enxergar o clima atual diretamente.
+
+![Geração real da planta e previsão da LSTM no período futuro de teste](/images/posts/solar-plant-problem-detection/plant-lstm-actual-vs-forecast.png)
+
+*No nível da planta, a mesma comparação deixa clara a limitação operacional: a LSTM entende o ritmo geral, mas nem sempre acompanha mudanças curtas e acentuadas na geração.*
 
 Isso não torna a LSTM um fracasso. Mostra onde ela se encaixa: benchmark de sequência e ferramenta de diagnóstico, não o estimador padrão em tempo real.
 
