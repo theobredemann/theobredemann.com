@@ -15,11 +15,17 @@ This is why I returned to a subject that caused a respectable amount of sufferin
 
 The complete notebook project is available on [GitHub](https://github.com/theobredemann/solar-plant-problem-detection).
 
+The raw measurements come from [Anikannal's Solar Power Generation Data dataset on Kaggle](https://www.kaggle.com/datasets/anikannal/solar-power-generation-data).
+
 ## Start with normal, not with failure
 
 The first task was almost boring, which is exactly why it mattered. Before predicting anything, I checked whether the data behaved like solar data should. The Plant 1 measurements have no null values in the loaded columns, high timestamp completeness, and a very clear daily cycle: no meaningful generation at night, a morning ramp, a midday peak, and a decline in the evening.
 
 That sounds obvious, but it changes the whole problem. A low value at midnight is not an anomaly. A low value while irradiation is high might be. In other words, raw power is not the signal; **power compared with the conditions** is the signal.
+
+![Correlation matrix between generated power and weather variables](/images/posts/solar-plant-problem-detection/correlation-matrix.png)
+
+*The first useful clue is the strong relationship between power and irradiation, with temperatures moving alongside the solar day. Correlation does not prove that one variable causes another; it tells us that weather is informative enough to belong in the expected-generation model.*
 
 ## One plant, two useful viewpoints
 
@@ -63,6 +69,14 @@ With current weather available, this is a very good fit for solar generation. At
 
 Those numbers make the decision reasonably clear: for estimating expected generation in the current moment, the tree models are the strongest and simplest option in this project.
 
+![Plant-level tree-model forecasts compared with actual generation](/images/posts/solar-plant-problem-detection/plant-tree-model-forecasts.png)
+
+*At plant level, the three tree-model lines sit close to the actual generation. This visual agreement is the practical counterpart to the low WAPE numbers: with current weather available, the model has a much sharper picture of what “normal” looks like.*
+
+![Inverter-level tree-model diagnostics](/images/posts/solar-plant-problem-detection/inverter-tree-model-diagnostics.png)
+
+*The inverter-level diagnostics add the detail needed after a plant-level signal: the forecast tracks one selected source, the scatter plot compares many predictions with reality, and the bottom-right panel shows the tree models reducing error substantially against the naive baseline.*
+
 There is one important caveat. This is **weather-conditioned nowcasting**, not pure future forecasting. The model uses current irradiation and temperature, which is perfect for monitoring. Predicting several hours ahead would require a weather forecast, or features that exist only in the past.
 
 ## Turning a prediction gap into a useful alert
@@ -78,6 +92,10 @@ degradation_score = max(expected generation - actual generation, 0)
 If the plant produces more than expected, the score is zero. If it repeatedly produces less, the score rises. Page-Hinkley looks for that persistent change instead of panicking over every isolated spike.
 
 On the test period, it produced nine alerts. The largest was on 2020-06-14 at 13:45, with a degradation score of about 23,356. The alerts are saved as timestamps with a severity level, which means they can be inspected rather than admired in a chart and forgotten.
+
+![Page-Hinkley alerts on the degradation score](/images/posts/solar-plant-problem-detection/page-hinkley-alerts.png)
+
+*The blue line is the gap between expected and actual generation when the plant underperforms; the red points are the nine moments Page-Hinkley judged persistent or unusual enough to flag. The large spike is visible, but the detector also marks smaller sustained gaps — exactly the cases that are easy to miss in a busy operational chart.*
 
 Can it be used? Yes — as an investigation trigger. It can tell an operator, “this period is unusual enough to inspect.” It cannot prove that an inverter failed. The data does not include labelled maintenance events, so there is no honest way to claim a false-positive rate or fault-detection accuracy yet. That validation needs field feedback.
 

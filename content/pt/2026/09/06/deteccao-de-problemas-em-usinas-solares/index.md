@@ -15,11 +15,17 @@ Foi por isso que voltei a um tema que já tinha me causado uma quantidade respei
 
 O projeto completo em notebooks está no [GitHub](https://github.com/theobredemann/solar-plant-problem-detection).
 
+As medições brutas vêm do conjunto [Solar Power Generation Data, de Anikannal, no Kaggle](https://www.kaggle.com/datasets/anikannal/solar-power-generation-data).
+
 ## Começar pelo normal, não pela falha
 
 O primeiro passo foi quase chato — e é justamente por isso que era importante. Antes de prever qualquer coisa, verifiquei se os dados se comportavam como dados solares deveriam. As medições da Planta 1 não têm valores nulos nas colunas carregadas, têm boa completude temporal e mostram um ciclo diário muito claro: quase nada de geração à noite, subida pela manhã, pico ao meio-dia e queda no fim da tarde.
 
 Isso parece óbvio, mas muda todo o problema. Um valor baixo à meia-noite não é uma anomalia. Um valor baixo com irradiação alta pode ser. Ou seja: potência bruta não é o sinal; **potência comparada às condições** é o sinal.
+
+![Matriz de correlação entre potência gerada e variáveis meteorológicas](/images/posts/solar-plant-problem-detection/correlation-matrix.png)
+
+*A primeira pista útil é a relação forte entre potência e irradiação, enquanto as temperaturas acompanham o ciclo solar. Correlação não prova que uma variável causa a outra; ela mostra que o clima é informativo o suficiente para entrar no modelo de geração esperada.*
 
 ## Uma usina, duas visões úteis
 
@@ -63,6 +69,14 @@ Com o clima atual disponível, isso combina muito bem com geração solar. No n�
 
 Os números tornam a decisão razoavelmente clara: para estimar a geração esperada no momento atual, os modelos de árvore são a opção mais forte e simples deste projeto.
 
+![Previsões dos modelos de árvore no nível da planta comparadas à geração real](/images/posts/solar-plant-problem-detection/plant-tree-model-forecasts.png)
+
+*No nível da planta, as linhas dos três modelos de árvore ficam próximas da geração real. Essa concordância visual é a contrapartida prática dos WAPEs baixos: quando o clima atual está disponível, o modelo enxerga “normalidade” com muito mais precisão.*
+
+![Diagnóstico dos modelos de árvore no nível do inversor](/images/posts/solar-plant-problem-detection/inverter-tree-model-diagnostics.png)
+
+*O diagnóstico por inversor acrescenta o detalhe necessário depois de um sinal no nível da planta: a previsão acompanha uma fonte selecionada, o gráfico de dispersão compara muitas previsões com a realidade, e o painel inferior direito mostra a redução substancial do erro das árvores frente à baseline ingênua.*
+
 Mas há uma ressalva importante. Isto é **nowcasting condicionado ao clima**, não previsão pura do futuro. O modelo usa irradiação e temperatura atuais, o que é perfeito para monitoramento. Para prever horas à frente, seriam necessárias previsões meteorológicas ou apenas variáveis do passado.
 
 ## Transformando a diferença em alerta útil
@@ -78,6 +92,10 @@ degradation_score = max(geração esperada - geração real, 0)
 Se a planta produz mais do que o esperado, o score é zero. Se produz menos repetidamente, o score sobe. O Page-Hinkley procura essa mudança persistente, em vez de entrar em pânico com cada pico isolado.
 
 No período de teste, ele produziu nove alertas. O maior aconteceu em 14 de junho de 2020 às 13:45, com score de degradação perto de 23.356. Os alertas são salvos com timestamp e severidade, então podem ser investigados em vez de apenas admirados num gráfico e esquecidos.
+
+![Alertas do Page-Hinkley sobre o score de degradação](/images/posts/solar-plant-problem-detection/page-hinkley-alerts.png)
+
+*A linha azul é a diferença entre geração esperada e real quando a planta fica abaixo do esperado; os pontos vermelhos são os nove momentos que o Page-Hinkley considerou persistentes ou incomuns o bastante para sinalizar. O grande pico fica evidente, mas o detector também marca perdas menores e sustentadas — justamente os casos que se perdem com facilidade em um gráfico operacional cheio.*
 
 Ele pode ser usado? Sim — como gatilho de investigação. Ele pode dizer ao operador: “este período está incomum o suficiente para olhar”. Ele não pode provar que um inversor falhou. Os dados não têm eventos de manutenção rotulados, então ainda não existe uma forma honesta de afirmar a taxa de falso positivo ou a acurácia de detecção de falhas. Essa validação precisa de feedback de campo.
 
