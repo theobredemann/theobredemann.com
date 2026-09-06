@@ -1,6 +1,6 @@
 ---
 title: "Detecção de Problemas em Usinas Solares: Por Que Um Modelo Só Não Bastou"
-date: 2026-09-06T12:00:00Z
+date: 2026-09-06T09:00:00Z
 type: posts
 tags:
   - "pt"

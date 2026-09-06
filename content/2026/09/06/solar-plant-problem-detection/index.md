@@ -1,6 +1,6 @@
 ---
 title: "Solar Plant Problem Detection: Why One Model Was Not Enough"
-date: 2026-09-06T12:00:00Z
+date: 2026-09-06T09:00:00Z
 type: posts
 tags:
   - "en"
